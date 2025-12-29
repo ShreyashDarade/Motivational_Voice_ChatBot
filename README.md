@@ -41,9 +41,9 @@ A high-performance, server-side voice AI application powered by **Google's Gemin
 
 ```mermaid
 graph TD
-    Client[Client Browser] <-->|AudioWorklet (PCM Int16)| WebSocket[FastAPI WebSocket /ws/chat]
-    WebSocket <-->|Async Stream| AudioService[Audio Processor (Resampling)]
-    WebSocket <-->|WSS (JSON/B64)| Gemini[Google Gemini Live API]
+    Client[Client Browser] <-->|AudioWorklet PCM Int16| WebSocket[FastAPI WebSocket /ws/chat]
+    WebSocket <-->|Async Stream| AudioService[Audio Processor Resampling]
+    WebSocket <-->|WSS JSON B64| Gemini[Google Gemini Live API]
 
     subgraph "Server Side"
     WebSocket
@@ -73,7 +73,7 @@ graph TD
 Clone the repository and navigate to the project folder:
 
 ```bash
-git clone https://github.com/your-repo/gemini-voice-bot.git
+git clone https://github.com/ShreyashDarade/gemini-voice-bot.git
 cd Gemini_Voice_ChatBot
 ```
 
