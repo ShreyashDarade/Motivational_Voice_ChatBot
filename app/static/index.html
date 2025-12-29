@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Motivational Voice Bot</title>
+    <style>
+      /* Fonts */
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+
+      :root {
+        --bg-color: #0d1117;
+        --glass-bg: rgba(22, 27, 34, 0.7);
+        --accent-primary: #58a6ff;
+        --accent-secondary: #a371f7;
+        --text-primary: #c9d1d9;
+        --text-secondary: #8b949e;
+      }
+
+      body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        color: var(--text-primary);
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: radial-gradient(circle at 50% 0%, #1f293a, var(--bg-color));
+        animation: bgPulse 20s infinite alternate;
+      }
+
+      @keyframes bgPulse {
+        0% { background: radial-gradient(circle at 50% 0%, #1f293a, var(--bg-color)); }
+        100% { background: radial-gradient(circle at 50% 20%, #2a3b55, var(--bg-color)); }
+      }
+
+      .container {
+        position: relative;
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        padding: 48px;
+        width: 420px;
+        text-align: center;
+        box-shadow: 0 4px 60px rgba(0, 0, 0, 0.4);
+        transition: transform 0.3s ease;
+      }
+
+      .container:hover {
+        transform: translateY(-5px);
+      }
+
+      h1 {
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 8px;
+        background: linear-gradient(120deg, var(--accent-primary), var(--accent-secondary));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      p {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        margin-bottom: 32px;
+        letter-spacing: 0.01em;
+      }
+
+      .visualizer-container {
+        width: 100%;
+        height: 140px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.05);
+        margin-bottom: 32px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+      }
+
+      button {
+        background: linear-gradient(135deg, #2ea043, #238636);
+        border: none;
+        border-radius: 50px;
+        padding: 16px 48px;
+        color: white;
+        font-size: 1.05rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 20px rgba(46, 160, 67, 0.4);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      button:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 8px 30px rgba(46, 160, 67, 0.6);
+      }
+
+      button:active {
+        transform: translateY(0) scale(0.98);
+      }
+
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #484f58;
+        transition: all 0.3s ease;
+      }
+
+      .status-dot.active {
+        background-color: #3fb950;
+        box-shadow: 0 0 15px #3fb950;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(63, 185, 80, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(63, 185, 80, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(63, 185, 80, 0); }
+      }
+
+      .badge {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        font-size: 0.65rem;
+        padding: 6px 10px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        color: var(--text-secondary);
+        font-weight: 500;
+        letter-spacing: 0.05em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="badge">Production Grade v1.0</div>
+      <h1>Motivational Companion</h1>
+      <p>Uplifting • Real-time • Neural Voice</p>
+
+      <div class="visualizer-container">
+        <canvas id="visualizer"></canvas>
+      </div>
+
+      <button id="startBtn">Start Conversation</button>
+      <button
+        id="stopBtn"
+        style="
+          display: none;
+          background: linear-gradient(135deg, #da3633, #b62324);
+          box-shadow: 0 4px 15px rgba(218, 54, 51, 0.4);
+        "
+      >
+        End Chat
+      </button>
+
+      <div class="status">
+        <div id="statusDot" class="status-dot"></div>
+        <span id="statusText">Ready to connect</span>
+        <div class="latency" id="latencyDisplay" style="display:none; margin-left:15px; font-size: 0.75rem; color: #58a6ff; font-family: 'Consolas', monospace;">
+            <span style="opacity:0.7">Latency:</span> <span id="latencyValue">--</span>ms
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const startBtn = document.getElementById("startBtn");
+      const stopBtn = document.getElementById("stopBtn");
+      const statusText = document.getElementById("statusText");
+      const statusDot = document.getElementById("statusDot");
+      const latencyDisplay = document.getElementById("latencyDisplay");
+      const latencyValue = document.getElementById("latencyValue");
+      const canvas = document.getElementById("visualizer");
+      const ctx = canvas.getContext("2d");
+
+      // Keep client->server audio as 24kHz Int16 PCM for Gemini Live.
+      // The AudioContext itself stays at the device/native rate (often 48kHz).
+      const TARGET_SAMPLE_RATE = 24000;
+      const AUDIO_CHUNK_MS = 20;
+
+      let audioContext;
+      let websocket;
+      let audioWorkletNode;
+      let source;
+      let nextStartTime = 0;
+      let isConnected = false;
+      let pingInterval;
+
+      // Visualizer vars
+      let analyser;
+      let dataArray;
+
+      async function initAudio() {
+        // Allow browser to choose native sample rate to avoid resampling artifacts/glitches
+        audioContext = new (window.AudioContext || window.webkitAudioContext)({
+          latencyHint: "interactive",
+        });
+        await audioContext.audioWorklet.addModule("/static/pcm-processor.js");
+
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+      }
+
+      startBtn.addEventListener("click", async () => {
+        if (!audioContext) await initAudio();
+        if (audioContext.state === "suspended") await audioContext.resume();
+
+        startBtn.disabled = true;
+        statusText.innerText = "Connecting...";
+
+        try {
+          // Get Mic Stream
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+              channelCount: 1,
+              sampleRate: 48000,
+            },
+          });
+
+          source = audioContext.createMediaStreamSource(stream);
+          audioWorkletNode = new AudioWorkletNode(
+             audioContext,
+             "pcm-processor",
+             {
+               processorOptions: {
+                 targetSampleRate: TARGET_SAMPLE_RATE,
+                 chunkMs: AUDIO_CHUNK_MS,
+                 gain: 1.0,
+               },
+             }
+           );
+
+          // Connect for visualization
+          source.connect(analyser);
+          // Connect to worklet for processing
+          source.connect(audioWorkletNode);
+
+          // Do NOT connect to destination (speakers) to avoid feedback loop
+          // audioWorkletNode.connect(audioContext.destination);
+
+          // WebSocket
+          const protocol =
+            window.location.protocol === "https:" ? "wss:" : "ws:";
+          websocket = new WebSocket(
+            `${protocol}//${window.location.host}/ws/chat`
+          );
+          websocket.binaryType = "arraybuffer";
+
+            websocket.onopen = () => {
+             isConnected = true;
+             statusText.innerText = "Live with Gemini";
+             statusDot.className = "status-dot active";
+             startBtn.style.display = "none";
+             stopBtn.style.display = "inline-block";
+             latencyDisplay.style.display = "block";
+             visualize();
+             startPing(); // Start latency check
+
+              // Send Client Sample Rate via JSON config
+              // This ensures the backend resampler matches the user's hardware (e.g., 44.1k vs 48k)
+              websocket.send(JSON.stringify({
+                 type: "config",
+                 sampleRate: TARGET_SAMPLE_RATE,
+                 sourceSampleRate: audioContext.sampleRate,
+                 chunkMs: AUDIO_CHUNK_MS
+              }));
+
+             // Sending audio from worklet
+             audioWorkletNode.port.onmessage = (event) => {
+               if (websocket.readyState === WebSocket.OPEN) {
+                 websocket.send(event.data);
+               }
+             };
+           };
+
+           websocket.onmessage = async (event) => {
+             if (event.data instanceof ArrayBuffer) {
+               playAudioChunk(event.data);
+             } else if (typeof event.data === "string") {
+                // Handle JSON (Pong)
+                try {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === "pong") {
+                        const now = Date.now();
+                        const rtt = now - msg.timestamp;
+                        // Avoid negative numbers or glitches
+                        const cleanRtt = Math.max(0, rtt); 
+                        latencyValue.innerText = cleanRtt;
+                        
+                        // Color coding
+                        const display = document.getElementById("latencyDisplay");
+                        if(cleanRtt < 100) display.style.color = "#3fb950"; // Green
+                        else if(cleanRtt < 300) display.style.color = "#d29922"; // Yellow
+                        else display.style.color = "#f85149"; // Red
+                    }
+                } catch (e) {
+                    console.warn("Invalid JSON received:", e);
+                }
+             }
+           };
+
+          websocket.onclose = () => {
+            cleanup();
+            statusText.innerText = "Disconnected";
+            statusDot.className = "status-dot";
+          };
+
+          websocket.onerror = (e) => {
+            console.error(e);
+            statusText.innerText = "Connection Error";
+            statusDot.className = "status-dot error";
+          };
+        } catch (err) {
+          console.error(err);
+          statusText.innerText = "Error: " + err.message;
+          startBtn.disabled = false;
+        }
+      });
+
+      stopBtn.addEventListener("click", () => {
+        if (websocket) websocket.close();
+      });
+
+      function playAudioChunk(arrayBuffer) {
+        // Data is Int16 PCM 24kHz
+        const int16Data = new Int16Array(arrayBuffer);
+        const float32Data = new Float32Array(int16Data.length);
+
+        // Convert Int16 -> Float32 for playback
+        for (let i = 0; i < int16Data.length; i++) {
+          float32Data[i] = int16Data[i] / 32768.0; // Normalize
+        }
+
+        const buffer = audioContext.createBuffer(1, float32Data.length, TARGET_SAMPLE_RATE); // 24kHz source
+        buffer.getChannelData(0).set(float32Data);
+
+        const source = audioContext.createBufferSource();
+        source.buffer = buffer;
+        source.connect(audioContext.destination);
+
+        // Schedule
+        const currentTime = audioContext.currentTime;
+        if (nextStartTime < currentTime) {
+          nextStartTime = currentTime;
+        }
+        source.start(nextStartTime);
+        nextStartTime += buffer.duration;
+      }
+
+      function cleanup() {
+        isConnected = false;
+        clearInterval(pingInterval);
+        if (source) source.disconnect();
+        if (audioWorkletNode) audioWorkletNode.disconnect();
+        startBtn.disabled = false;
+        startBtn.style.display = "inline-block";
+        stopBtn.style.display = "none";
+        latencyDisplay.style.display = "none";
+        latencyValue.innerText = "--";
+      }
+
+      function startPing() {
+          clearInterval(pingInterval);
+          pingInterval = setInterval(() => {
+              if (websocket && websocket.readyState === WebSocket.OPEN) {
+                  const pingData = JSON.stringify({ type: "ping", timestamp: Date.now() });
+                  websocket.send(pingData);
+              }
+          }, 1000); // Ping every 1000ms
+      }
+
+      function visualize() {
+        if (!isConnected) return;
+        requestAnimationFrame(visualize);
+
+        analyser.getByteFrequencyData(dataArray);
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const barWidth = (canvas.width / dataArray.length) * 2.5;
+        let barHeight;
+        let x = 0;
+
+        for (let i = 0; i < dataArray.length; i++) {
+          barHeight = dataArray[i] / 2;
+
+          // Gradient for bars
+          const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0);
+          gradient.addColorStop(0, "#58a6ff");
+          gradient.addColorStop(1, "#a371f7");
+
+          ctx.fillStyle = gradient;
+          ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+
+          x += barWidth + 1;
+        }
+      }
+    </script>
+  </body>
+</html>
