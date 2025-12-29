@@ -141,15 +141,13 @@ Gemini_Voice_ChatBot/
 
 ### Changing the Voice
 
-The default voice is set to **"Aoede"** (Female). To change it, edit `app/services/gemini_service.py`:
+The default voice is set to **"Aoede"** (Female). To change it, you can simply update your `.env` file or modify `app/core/config.py`:
 
-```python
-"voice_config": {
-    "prebuilt_voice_config": {
-        "voice_name": "Puck" # Alternate voices: 'Puck', 'Charon', 'Kore', 'Fenrir'
-    }
-}
+```env
+GEMINI_VOICE=Puck
 ```
+
+Supported voices: `Puck`, `Charon`, `Kore`, `Fenrir`, `Aoede`.
 
 ### Modifying the Persona
 
@@ -171,7 +169,7 @@ You are a highly technical coding assistant...
 
 **Q: "Connection Error" on start.**
 
-- **A**: Verify your `GEMINI_API_KEY` in `.env` is correct and has access to the `gemini-2.0-flash-exp` model.
+- **A**: Verify your `GEMINI_API_KEY` in `.env` is correct and has access to the model specified in `app/core/config.py` (Default: `gemini-2.5-flash-native-audio-preview-12-2025`).
 
 **Q: The latency is high (>1000ms).**
 
